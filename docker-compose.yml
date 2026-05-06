@@ -1,0 +1,20 @@
+services:
+  doc-relay:
+    build: .
+    container_name: doc-relay-viz
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Muscat
+    labels:
+      # ── Traefik labels (uncomment if you use Traefik as reverse proxy) ──
+      # - "traefik.enable=true"
+      # - "traefik.http.routers.doc-relay.rule=Host(`relay.yourdomain.com`)"
+      # - "traefik.http.routers.doc-relay.entrypoints=websecure"
+      # - "traefik.http.routers.doc-relay.tls.certresolver=letsencrypt"
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
+   
