@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOC Relay — Operating Zone Visualizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0d0f14;
+  --bg2:       #13161e;
+  --bg3:       #1a1e2a;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.13);
+  --text:      #e8eaf0;
+  --text2:     #8892a4;
+  --text3:     #525d6e;
+  --accent:    #3b82f6;
+  --accent-g:  #22c55e;
+  --accent-r:  #ef4444;
+  --accent-y:  #f59e0b;
+  --accent-p:  #a78bfa;
+  --op:        #22c55e;
+  --re:        #ef4444;
+  --blind:     #f59e0b;
+  --mta:       #f59e0b;
+  --phase-r:   #f87171;
+  --phase-y:   #fbbf24;
+  --phase-b:   #60a5fa;
+  --pol:       #a78bfa;
+  --font-head: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius:    8px;
+  --radius-lg: 12px;
+  --shadow:    0 4px 24px rgba(0,0,0,0.4);
+  --transition: 0.18s ease;
+}
+
+[data-theme="light"] {
+  --bg:        #f0f2f7;
+  --bg2:       #ffffff;
+  --bg3:       #e8ebf2;
+  --border:    rgba(0,0,0,0.07);
+  --border2:   rgba(0,0,0,0.13);
+  --text:      #111827;
+  --text2:     #4b5563;
+  --text3:     #9ca3af;
+  --accent:    #2563eb;
+  --accent-g:  #16a34a;
+  --accent-r:  #dc2626;
+  --accent-y:  #d97706;
+  --accent-p:  #7c3aed;
+  --op:        #16a34a;
+  --re:        #dc2626;
+  --blind:     #d97706;
+  --mta:       #d97706;
+  --phase-r:   #dc2626;
+  --phase-y:   #b45309;
+  --phase-b:   #1d4ed8;
+  --pol:       #7c3aed;
+  --shadow:    0 4px 24px rgba(0,0,0,0.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-mono);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background var(--transition), color var(--transition);
+  line-height: 1.5;
+}
+
+/* ── Layout ── */
+.app {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-mark {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-mark svg { width: 18px; height: 18px; fill: white; }
+
+.header-title {
+  font-family: var(--font-head);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+.header-sub {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.header-right { display: flex; align-items: center; gap: 8px; }
+
+.badge {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  background: var(--bg3);
+  letter-spacing: 0.04em;
+}
+
+.theme-btn {
+  width: 34px; height: 34px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+.theme-btn svg { width: 16px; height: 16px; }
+
+/* ── Main content ── */
+.main {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 0;
+  height: calc(100vh - 61px);
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.section-title {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-title::before {
+  content: '';
+  display: block;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ── Segment controls ── */
+.seg-group {
+  display: flex;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  width: 100%;
+}
+.seg {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text2);
+  border: none;
+  transition: all var(--transition);
+  letter-spacing: 0.02em;
+}
+.seg:not(:last-child) { border-right: 1px solid var(--border2); }
+.seg:hover:not(.on):not(.on-fwd):not(.on-rev) { background: var(--bg3); color: var(--text); }
+.seg.on { background: var(--accent); color: #fff; }
+.seg.on-fwd { background: rgba(34,197,94,0.18); color: var(--accent-g); border-color: rgba(34,197,94,0.3); }
+.seg.on-rev { background: rgba(239,68,68,0.15); color: var(--accent-r); border-color: rgba(239,68,68,0.25); }
+
+.phase-r.on { background: rgba(248,113,113,0.15); color: var(--phase-r); }
+.phase-y.on { background: rgba(251,191,36,0.15); color: var(--phase-y); }
+.phase-b.on { background: rgba(96,165,250,0.15); color: var(--phase-b); }
+
+/* ── Number input row ── */
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.input-label {
+  font-size: 11px;
+  color: var(--text2);
+  flex: 1;
+  letter-spacing: 0.02em;
+}
+.num-input {
+  width: 64px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-align: center;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  transition: border-color var(--transition);
+  -moz-appearance: textfield;
+}
+.num-input::-webkit-outer-spin-button,
+.num-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.num-input:focus { outline: none; border-color: var(--accent); }
+.input-unit {
+  font-size: 11px;
+  color: var(--text3);
+  width: 14px;
+}
+
+/* ── Info cards ── */
+.info-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.info-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  transition: border-color var(--transition);
+}
+.info-card:hover { border-color: var(--border2); }
+.ic-label {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+.ic-value {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text);
+  line-height: 1.2;
+}
+.ic-value.green { color: var(--op); }
+.ic-value.red   { color: var(--re); }
+.ic-value.amber { color: var(--mta); }
+.ic-value.purple{ color: var(--pol); }
+
+.info-card.full { grid-column: 1 / -1; }
+
+/* ── Voltage reference table ── */
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.ref-table td {
+  padding: 5px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table .td-name { color: var(--text2); width: 50px; }
+.ref-table .td-val  { color: var(--text); font-weight: 500; text-align: right; }
+.dot-r { color: var(--phase-r); }
+.dot-y { color: var(--phase-y); }
+.dot-b { color: var(--phase-b); }
+
+/* ── Legend ── */
+.legend { display: flex; flex-direction: column; gap: 6px; }
+.leg-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--text2);
+}
+.leg-swatch {
+  width: 20px; height: 4px; border-radius: 2px; flex-shrink: 0;
+}
+.leg-circle {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* ── Canvas area ── */
+.canvas-area {
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+.canvas-wrap {
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 1;
+  position: relative;
+}
+
+#psv {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Direction hint ── */
+.dir-hint {
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+}
+.dir-hint.fwd { background: rgba(34,197,94,0.1); color: var(--op); border: 1px solid rgba(34,197,94,0.2); }
+.dir-hint.rev { background: rgba(239,68,68,0.1); color: var(--re); border: 1px solid rgba(239,68,68,0.2); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; overflow: visible; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: none; }
+  .canvas-area { min-height: 380px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5" fill="none"/>
+        <path d="M12 12 L18 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M12 12 L9 6.8" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="12" cy="12" r="1.5" fill="white"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">DOC Relay Visualizer</div>
+      <div class="header-sub">Directional Overcurrent · Operating Zone</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="badge">IEC 60255</span>
+    <span class="badge">Cross-Pol</span>
+    <button class="theme-btn" id="theme-toggle" title="Toggle theme" onclick="toggleTheme()">
+      <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+        <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+        <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar">
+
+    <div class="section">
+      <div class="section-title">Fault Type</div>
+      <div class="seg-group" id="type-grp">
+        <button class="seg on" onclick="setType('pp',this)">Phase–Phase</button>
+        <button class="seg" onclick="setType('ef',this)">Earth Fault</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Faulty Phase</div>
+      <div class="seg-group" id="phase-grp">
+        <button class="seg phase-r on" onclick="setPhase('R',this)">R</button>
+        <button class="seg phase-y" onclick="setPhase('Y',this)">Y</button>
+        <button class="seg phase-b" onclick="setPhase('B',this)">B</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Direction</div>
+      <div class="seg-group" id="dir-grp">
+        <button class="seg on on-fwd" onclick="setDir('fwd',this)">↗ Forward</button>
+        <button class="seg" onclick="setDir('rev',this)">↙ Reverse</button>
+      </div>
+      <div class="dir-hint fwd" id="dir-hint">Fault in front of relay</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Parameters</div>
+      <div class="input-row">
+        <span class="input-label">MTA offset</span>
+        <input type="number" class="num-input" id="mta-offset" value="45" min="-180" max="180">
+        <span class="input-unit">°</span>
+      </div>
+      <div class="input-row">
+        <span class="input-label">Blind zone</span>
+        <input type="number" class="num-input" id="blind-zone" value="5" min="0" max="30">
+        <span class="input-unit">°</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Computed Values</div>
+      <div class="info-cards">
+        <div class="info-card">
+          <div class="ic-label">Pol. voltage</div>
+          <div class="ic-value purple" id="ic-pol">Vyb</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-label">Ref. angle</div>
+          <div class="ic-value amber" id="ic-ref">270°</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-label">MTA (final)</div>
+          <div class="ic-value amber" id="ic-mta">315°</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-label">Direction</div>
+          <div class="ic-value green" id="ic-dir">Forward</div>
+        </div>
+        <div class="info-card full">
+          <div class="ic-label">Operating zone</div>
+          <div class="ic-value green" id="ic-opzone">225° → 45°</div>
+        </div>
+        <div class="info-card full">
+          <div class="ic-label">Restraint zone</div>
+          <div class="ic-value red" id="ic-rezone">45° → 225°</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Voltage Reference (63.51 V sec.)</div>
+      <table class="ref-table">
+        <tr>
+          <td class="td-name"><span class="dot-r">●</span> VR</td>
+          <td class="td-val">0°</td>
+          <td class="td-val">63.51 V</td>
+        </tr>
+        <tr>
+          <td class="td-name"><span class="dot-y">●</span> VY</td>
+          <td class="td-val">240°</td>
+          <td class="td-val">63.51 V</td>
+        </tr>
+        <tr>
+          <td class="td-name"><span class="dot-b">●</span> VB</td>
+          <td class="td-val">120°</td>
+          <td class="td-val">63.51 V</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Legend</div>
+      <div class="legend">
+        <div class="leg-row"><div class="leg-swatch" style="background:var(--op);opacity:.7"></div>Operating zone (±90° from MTA)</div>
+        <div class="leg-row"><div class="leg-swatch" style="background:var(--re);opacity:.5"></div>Restraint zone (non-operating)</div>
+        <div class="leg-row"><div class="leg-swatch" style="background:var(--blind);height:8px;border-radius:2px"></div>Blind zone (boundary ±5°)</div>
+        <div class="leg-row"><div class="leg-swatch" style="background:var(--mta)"></div>MTA — max torque axis</div>
+        <div class="leg-row"><div class="leg-swatch" style="background:var(--pol);height:2px;border-top: 2px dashed var(--pol);background:none"></div>Polarizing phasor</div>
+        <div class="leg-row"><div class="leg-swatch" style="background:var(--accent-g);height:2px;border-top:2px dashed var(--accent-g);background:none"></div>Zone boundary lines</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Canvas ── -->
+  <div class="canvas-area">
+    <div class="canvas-wrap">
+      <svg id="psv" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+const cx=250,cy=250,R=195;
+const d2r=d=>d*Math.PI/180;
+const ppx=(a,r)=>cx+r*Math.cos(d2r(a));
+const ppy=(a,r)=>cy-r*Math.sin(d2r(a));
+const mod360=a=>((a%360)+360)%360;
+const ns='http://www.w3.org/2000/svg';
+const mk=(t,a)=>{const e=document.createElementNS(ns,t);Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));return e};
+
+const PP_POL={R:{label:'Vyb',ref:270},Y:{label:'Vrb',ref:150},B:{label:'Vry',ref:30}};
+const EF_POL={R:{label:'V₀(R)',ref:0},Y:{label:'V₀(Y)',ref:240},B:{label:'V₀(B)',ref:120}};
+const PHASES=[{name:'R',angle:0},{name:'Y',angle:240},{name:'B',angle:120}];
+
+let state={type:'pp',phase:'R',offset:45,blind:5,dir:'fwd'};
+
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+
+function arcSector(startDeg,endDeg,r,fill,opacity){
+  let s=startDeg,e=endDeg;
+  if(e<s)e+=360;
+  const steps=120;
+  let d=`M${cx},${cy} L${ppx(s,r).toFixed(2)},${ppy(s,r).toFixed(2)}`;
+  for(let i=1;i<=steps;i++){const a=s+(e-s)*i/steps;d+=` L${ppx(a,r).toFixed(2)},${ppy(a,r).toFixed(2)}`;}
+  d+='Z';
+  return mk('path',{d,fill,opacity:String(opacity),'style':'pointer-events:none'});
+}
+
+function draw(){
+  const svg=document.getElementById('psv');
+  while(svg.firstChild)svg.removeChild(svg.firstChild);
+  const f=document.createDocumentFragment();
+
+  const defs=mk('defs',{});
+  const mar=mk('marker',{id:'arw',viewBox:'0 0 10 10',refX:'8',refY:'5',markerWidth:'5',markerHeight:'5',orient:'auto-start-reverse'});
+  mar.appendChild(mk('path',{d:'M2 1L8 5L2 9',fill:'none',stroke:'context-stroke','stroke-width':'1.5','stroke-linecap':'round','stroke-linejoin':'round'}));
+  defs.appendChild(mar);
+
+  const marS=mk('marker',{id:'arwS',viewBox:'0 0 10 10',refX:'8',refY:'5',markerWidth:'4',markerHeight:'4',orient:'auto-start-reverse'});
+  marS.appendChild(mk('path',{d:'M2 1L8 5L2 9',fill:'none',stroke:'context-stroke','stroke-width':'1.5','stroke-linecap':'round','stroke-linejoin':'round'}));
+  defs.appendChild(marS);
+  f.appendChild(defs);
+
+  const pol=state.type==='pp'?PP_POL[state.phase]:EF_POL[state.phase];
+  const ref=pol.ref;
+  let mta=mod360(ref+state.offset);
+  if(state.dir==='rev') mta=mod360(mta+180);
+
+  const plus90=mod360(mta+90);
+  const minus90=mod360(mta-90);
+  const blind=state.blind;
+  const opC=state.dir==='fwd'?css('--op'):css('--re');
+  const reC=state.dir==='fwd'?css('--re'):css('--op');
+
+  // Zone fills
+  f.appendChild(arcSector(mta-90,mta+90,R,opC,state.dir==='fwd'?0.13:0.10));
+  f.appendChild(arcSector(mta+90,mta+270,R,reC,state.dir==='fwd'?0.08:0.13));
+
+  // Blind zone fills — entirely inside operating region, from boundary inward by blind° toward MTA
+  // plus90 boundary: inward means going backward (minus direction) toward MTA
+  f.appendChild(arcSector(plus90-blind, plus90, R, css('--blind'), 0.40));
+  // minus90 boundary: inward means going forward (plus direction) toward MTA
+  f.appendChild(arcSector(minus90, minus90+blind, R, css('--blind'), 0.40));
+
+  // Outer ring
+  f.appendChild(mk('circle',{cx,cy,r:R,fill:'none',stroke:css('--border2'),'stroke-width':'1'}));
+
+  // Inner dashed ring at 50%
+  f.appendChild(mk('circle',{cx,cy,r:R*0.5,fill:'none',stroke:css('--border'),'stroke-width':'0.5','stroke-dasharray':'3 4'}));
+
+  // Tick marks and degree labels
+  for(let a=0;a<360;a+=30){
+    const isMajor=(a%90===0);
+    f.appendChild(mk('line',{
+      x1:ppx(a,R*(isMajor?0.88:0.92)).toFixed(2),y1:ppy(a,R*(isMajor?0.88:0.92)).toFixed(2),
+      x2:ppx(a,R).toFixed(2),y2:ppy(a,R).toFixed(2),
+      stroke:isMajor?css('--text3'):css('--border2'),'stroke-width':isMajor?'1':'0.5'
+    }));
+    const tr=R*1.1;
+    const tx=mk('text',{
+      x:ppx(a,tr).toFixed(2),y:(ppy(a,tr)+3.5).toFixed(2),
+      'text-anchor':'middle','font-size':'9.5','font-family':'JetBrains Mono, monospace',
+      fill:css('--text3')
+    });
+    tx.textContent=a+'°'; f.appendChild(tx);
+  }
+
+  // Cross axes
+  [0,90].forEach(a=>{
+    f.appendChild(mk('line',{
+      x1:ppx(a+180,R*0.97).toFixed(2),y1:ppy(a+180,R*0.97).toFixed(2),
+      x2:ppx(a,R*0.97).toFixed(2),y2:ppy(a,R*0.97).toFixed(2),
+      stroke:css('--border'),'stroke-width':'0.5','stroke-dasharray':'5 4'
+    }));
+  });
+
+  // Zone boundary lines with angle labels
+  [plus90,minus90].forEach(b=>{
+    f.appendChild(mk('line',{
+      x1:cx,y1:cy,
+      x2:ppx(b,R).toFixed(2),y2:ppy(b,R).toFixed(2),
+      stroke:css('--accent-g'),'stroke-width':'1.5','stroke-dasharray':'7 4'
+    }));
+
+    // Angle badge on boundary line at ~85% radius
+    const bx=ppx(b,R*0.82);
+    const by=ppy(b,R*0.82);
+    const txt=mod360(b)+'°';
+    const tw=txt.length*6.2+12;
+    const bg=mk('rect',{
+      x:(bx-tw/2).toFixed(2),y:(by-9).toFixed(2),
+      width:tw.toFixed(2),height:'17',rx:'4',
+      fill:css('--accent-g'),opacity:'1'
+    });
+    const lt=mk('text',{
+      x:bx.toFixed(2),y:(by+1.5).toFixed(2),
+      'text-anchor':'middle','dominant-baseline':'middle',
+      'font-size':'9','font-weight':'700',
+      'font-family':'JetBrains Mono, monospace',
+      fill:'#ffffff'
+    });
+    lt.textContent=txt;
+    f.appendChild(bg); f.appendChild(lt);
+  });
+
+  // Phase voltage phasors
+  const phaseColors={R:css('--phase-r'),Y:css('--phase-y'),B:css('--phase-b')};
+  PHASES.forEach(ph=>{
+    const rr=R*0.78;
+    const color=phaseColors[ph.name];
+    f.appendChild(mk('line',{
+      x1:cx,y1:cy,
+      x2:ppx(ph.angle,rr).toFixed(2),y2:ppy(ph.angle,rr).toFixed(2),
+      stroke:color,'stroke-width':'2','marker-end':'url(#arw)'
+    }));
+    const lx=ppx(ph.angle,R*0.89);
+    const ly=ppy(ph.angle,R*0.89);
+    const ptxt=mk('text',{
+      x:lx.toFixed(2),y:(ly+3.5).toFixed(2),
+      'text-anchor':'middle','font-size':'11','font-weight':'700',
+      'font-family':'JetBrains Mono, monospace',fill:color
+    });
+    ptxt.textContent='V'+ph.name; f.appendChild(ptxt);
+  });
+
+  // Polarizing phasor
+  const polR=R*0.62;
+  f.appendChild(mk('line',{
+    x1:cx,y1:cy,
+    x2:ppx(ref,polR).toFixed(2),y2:ppy(ref,polR).toFixed(2),
+    stroke:css('--pol'),'stroke-width':'1.5','marker-end':'url(#arwS)','stroke-dasharray':'5 3'
+  }));
+  const plx=ppx(ref,R*0.73); const ply=ppy(ref,R*0.73);
+  const ptxt2=mk('text',{
+    x:plx.toFixed(2),y:(ply+3.5).toFixed(2),
+    'text-anchor':'middle','font-size':'9.5','font-weight':'500',
+    'font-family':'JetBrains Mono, monospace',fill:css('--pol')
+  });
+  ptxt2.textContent=pol.label; f.appendChild(ptxt2);
+
+  // MTA arrow
+  f.appendChild(mk('line',{
+    x1:cx,y1:cy,
+    x2:ppx(mta,R*0.84).toFixed(2),y2:ppy(mta,R*0.84).toFixed(2),
+    stroke:css('--mta'),'stroke-width':'3','marker-end':'url(#arw)'
+  }));
+
+  // MTA badge
+  const mtx=ppx(mta,R*0.97); const mty=ppy(mta,R*0.97);
+  const mtaTxt='MTA '+mta+'°';
+  const mtw=mtaTxt.length*6+14;
+  f.appendChild(mk('rect',{
+    x:(mtx-mtw/2).toFixed(2),y:(mty-9).toFixed(2),
+    width:mtw.toFixed(2),height:'17',rx:'4',
+    fill:css('--mta'),opacity:'0.95'
+  }));
+  const mtl=mk('text',{
+    x:mtx.toFixed(2),y:(mty+1.5).toFixed(2),
+    'text-anchor':'middle','dominant-baseline':'middle',
+    'font-size':'9','font-weight':'700',
+    'font-family':'JetBrains Mono, monospace',fill:'#1c0a00'
+  });
+  mtl.textContent=mtaTxt; f.appendChild(mtl);
+
+  // Zone center labels
+  const opLabel=state.dir==='fwd'?'OPERATE':'RESTRAIN';
+  const reLabel=state.dir==='fwd'?'RESTRAIN':'OPERATE';
+  const ol=mk('text',{
+    x:ppx(mta,R*0.40).toFixed(2),y:(ppy(mta,R*0.40)+3.5).toFixed(2),
+    'text-anchor':'middle','font-size':'9','font-weight':'700',
+    'font-family':'JetBrains Mono, monospace',fill:opC,opacity:'0.8'
+  });
+  ol.textContent=opLabel; f.appendChild(ol);
+  const rl=mk('text',{
+    x:ppx(mod360(mta+180),R*0.40).toFixed(2),y:(ppy(mod360(mta+180),R*0.40)+3.5).toFixed(2),
+    'text-anchor':'middle','font-size':'9','font-weight':'700',
+    'font-family':'JetBrains Mono, monospace',fill:reC,opacity:'0.7'
+  });
+  rl.textContent=reLabel; f.appendChild(rl);
+
+  // Blind zone labels — midpoint of each blind wedge, inside operating region
+  const blindMidPlus  = mod360(plus90  - blind/2);   // midpoint between (plus90-blind) and plus90
+  const blindMidMinus = mod360(minus90 + blind/2);   // midpoint between minus90 and (minus90+blind)
+  [blindMidPlus, blindMidMinus].forEach(b=>{
+    const btx=mk('text',{
+      x:ppx(b,R*0.73).toFixed(2),y:(ppy(b,R*0.73)+3.5).toFixed(2),
+      'text-anchor':'middle','font-size':'8.5','font-weight':'600',
+      'font-family':'JetBrains Mono, monospace',
+      fill:css('--blind'),opacity:'0.85'
+    });
+    btx.textContent='blind'; f.appendChild(btx);
+  });
+
+  // Center dot
+  f.appendChild(mk('circle',{cx,cy,r:'3',fill:css('--text2')}));
+
+  svg.appendChild(f);
+
+  // Update info panel
+  document.getElementById('ic-pol').textContent=pol.label;
+  document.getElementById('ic-ref').textContent=ref+'°';
+  document.getElementById('ic-mta').textContent=mta+'°';
+  const dirEl=document.getElementById('ic-dir');
+  dirEl.textContent=state.dir==='fwd'?'Forward ↗':'Reverse ↙';
+  dirEl.className='ic-value '+(state.dir==='fwd'?'green':'red');
+  document.getElementById('ic-opzone').textContent=mod360(mta-90)+'° → '+mod360(mta+90)+'°';
+  document.getElementById('ic-rezone').textContent=mod360(mta+90)+'° → '+mod360(mta-90)+'°';
+}
+
+function setType(t,btn){
+  state.type=t;
+  document.querySelectorAll('#type-grp .seg').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  state.offset=t==='ef'?-45:45;
+  document.getElementById('mta-offset').value=state.offset;
+  draw();
+}
+function setPhase(p,btn){
+  state.phase=p;
+  document.querySelectorAll('#phase-grp .seg').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  draw();
+}
+function setDir(d,btn){
+  state.dir=d;
+  document.querySelectorAll('#dir-grp .seg').forEach(b=>{b.classList.remove('on','on-fwd','on-rev');});
+  btn.classList.add('on',d==='fwd'?'on-fwd':'on-rev');
+  const hint=document.getElementById('dir-hint');
+  hint.textContent=d==='fwd'?'Fault in front of relay':'Fault behind relay';
+  hint.className='dir-hint '+(d==='fwd'?'fwd':'rev');
+  draw();
+}
+document.getElementById('mta-offset').addEventListener('input',function(){
+  const v=parseInt(this.value);if(!isNaN(v)){state.offset=v;draw();}
+});
+document.getElementById('blind-zone').addEventListener('input',function(){
+  const v=parseInt(this.value);if(!isNaN(v)&&v>=0){state.blind=v;draw();}
+});
+
+function toggleTheme(){
+  const html=document.documentElement;
+  const isDark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',isDark?'light':'dark');
+  document.getElementById('icon-sun').style.display=isDark?'block':'none';
+  document.getElementById('icon-moon').style.display=isDark?'none':'block';
+  setTimeout(draw,20);
+}
+
+draw();
+</script>
+</body>
+</html>
