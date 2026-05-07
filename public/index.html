@@ -326,75 +326,6 @@ header {
   width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
 }
 
-/* ── Theory / help ── */
-.theory-block {
-  padding: 0;
-  border-bottom: 1px solid var(--border);
-}
-.theory-block > summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 14px 16px;
-  font-size: 10px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text3);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  user-select: none;
-}
-.theory-block > summary::-webkit-details-marker { display: none; }
-.theory-block > summary::before {
-  content: '';
-  width: 3px; height: 3px;
-  border-radius: 50%;
-  background: var(--accent);
-  flex-shrink: 0;
-}
-.theory-block > summary::after {
-  content: '+';
-  margin-left: auto;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text2);
-}
-.theory-block[open] > summary::after { content: '−'; }
-.theory-body {
-  padding: 0 16px 16px;
-  font-size: 11px;
-  color: var(--text2);
-  line-height: 1.55;
-}
-.theory-body h4 {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text);
-  margin: 12px 0 6px;
-  letter-spacing: 0.04em;
-}
-.theory-body h4:first-child { margin-top: 0; }
-.theory-body p { margin-bottom: 8px; }
-.theory-body code {
-  font-size: 10px;
-  background: var(--bg3);
-  padding: 1px 5px;
-  border-radius: 3px;
-  color: var(--text);
-}
-.theory-body .eq {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  display: block;
-  margin: 6px 0;
-  padding: 8px 10px;
-  background: var(--bg3);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
 /* ── Canvas area ── */
 .canvas-area {
   background: var(--bg);
@@ -478,6 +409,13 @@ header {
   <div class="header-right">
     <span class="badge">IEC 60255</span>
     <span class="badge">Cross-Pol</span>
+    <button class="theme-btn" id="guide-btn" title="Open guide" aria-label="Open guide" onclick="openGuide()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 5h11a3 3 0 0 1 3 3v11H7a3 3 0 0 0-3 3z"/>
+        <path d="M7 5v17"/>
+        <path d="M10 10h5"/>
+      </svg>
+    </button>
     <button class="theme-btn" id="theme-toggle" title="Toggle theme" onclick="toggleTheme()">
       <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
@@ -566,27 +504,6 @@ header {
         </div>
       </div>
     </div>
-
-    <details class="theory-block">
-      <summary>How it works</summary>
-      <div class="theory-body">
-        <h4>What is directional overcurrent?</h4>
-        <p>The relay compares the <strong>angle</strong> of an operating current phasor <code>I</code> (or <code>I</code> + <code>k·I₀</code> for earth) to a stable voltage reference <code>V<sub>pol</sub></code>. If the angle of <code>I</code> relative to <code>V<sub>pol</sub></code> falls inside the <strong>forward operating semicircle</strong> (here drawn as ±90° about <strong>MTA</strong>), the element declares “forward” and can trip; otherwise it restrains.</p>
-        <span class="eq">MTA = ref_angle + MTA_offset (mod 360°)</span>
-
-        <h4>Phase–phase (cross-polarization)</h4>
-        <p>For phase-to-phase faults, polarization uses a <strong>line-to-line</strong> voltage that avoids the most collapsed phase where possible (e.g. R-related loop → <code>V<sub>YB</sub></code>). Healthy phases still provide a measurable reference when the faulted phase voltage is small, so direction stays reliable near the relay.</p>
-
-        <h4>Earth fault (zero-sequence polarization)</h4>
-        <p>For earth faults, the reference aligns with <strong>zero-sequence voltage</strong> <code>3V₀</code> (labeled <code>V₀(R)</code>, etc. in this demo). Residual / zero-sequence current <code>I₀</code> is compared to <code>V₀</code>: <code>V₀</code> rises when the network’s neutral point shifts during ground faults, giving a consistent directional reference.</p>
-
-        <h4>MTA and blind zone</h4>
-        <p><strong>MTA</strong> (maximum torque axis) is the centerline of the comparator’s sensitive direction. <strong>Blind zones</strong> are narrow wedges straddling the ±90° boundaries to reduce chatter when the measured angle sits exactly on the edge.</p>
-
-        <h4>Forward vs Reverse</h4>
-        <p><strong>Forward</strong> uses MTA = ref + offset. <strong>Reverse</strong> shifts MTA by 180° so you visualize the <strong>reverse-directional</strong> characteristic: the green operate band rotates with MTA on the phasor diagram.</p>
-      </div>
-    </details>
 
     <div class="section">
       <div class="section-title">Voltage Reference (63.51 V sec.)</div>
@@ -916,6 +833,10 @@ function toggleTheme(){
   document.getElementById('icon-sun').style.display=isDark?'block':'none';
   document.getElementById('icon-moon').style.display=isDark?'none':'block';
   setTimeout(draw,20);
+}
+
+function openGuide(){
+  window.location.href='guide.html';
 }
 
 draw();

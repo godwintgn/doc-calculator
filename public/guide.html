@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOC Relay — Beginner's Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;1,9..144,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #09090e;
+  --bg2:       #10111a;
+  --bg3:       #181926;
+  --bg4:       #1e2030;
+  --border:    rgba(255,255,255,0.06);
+  --border2:   rgba(255,255,255,0.12);
+  --text:      #e2e4f0;
+  --text2:     #8b90a8;
+  --text3:     #44485e;
+  --accent:    #6366f1;
+  --accent2:   #818cf8;
+  --green:     #34d399;
+  --amber:     #fbbf24;
+  --red:       #f87171;
+  --purple:    #c084fc;
+  --cyan:      #22d3ee;
+  --phaseR:    #f87171;
+  --phaseY:    #fbbf24;
+  --phaseB:    #60a5fa;
+  --font-d:    'Fraunces', serif;
+  --font-b:    'DM Sans', sans-serif;
+  --font-m:    'DM Mono', monospace;
+  --r:         10px;
+  --r2:        16px;
+  --tr:        0.2s ease;
+}
+[data-theme="light"] {
+  --bg:        #f5f4f0;
+  --bg2:       #ffffff;
+  --bg3:       #eeecf0;
+  --bg4:       #e4e2eb;
+  --border:    rgba(0,0,0,0.06);
+  --border2:   rgba(0,0,0,0.12);
+  --text:      #1a1b2e;
+  --text2:     #5a5e7a;
+  --text3:     #a0a3ba;
+  --accent:    #4f46e5;
+  --accent2:   #6366f1;
+  --green:     #059669;
+  --amber:     #d97706;
+  --red:       #dc2626;
+  --purple:    #9333ea;
+  --cyan:      #0891b2;
+  --phaseR:    #dc2626;
+  --phaseY:    #b45309;
+  --phaseB:    #1d4ed8;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-b);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  transition:background var(--tr),color var(--tr);
+}
+
+/* ── Noise texture overlay ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.4;
+}
+
+/* ── Header ── */
+header{
+  position:sticky;top:0;z-index:50;
+  background:rgba(9,9,14,0.85);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:14px 32px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+[data-theme="light"] header{background:rgba(245,244,240,0.88);}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--cyan));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-size:18px;color:#fff;font-weight:800;
+}
+.logo-text{font-family:var(--font-d);font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.01em}
+.logo-sub{font-size:10px;color:var(--text3);font-family:var(--font-m);letter-spacing:0.1em;text-transform:uppercase}
+.header-nav{display:flex;align-items:center;gap:8px}
+.nav-link{
+  font-size:12px;padding:6px 14px;border-radius:var(--r);
+  font-family:var(--font-m);color:var(--text2);text-decoration:none;
+  border:1px solid transparent;transition:all var(--tr);
+}
+.nav-link:hover{color:var(--text);border-color:var(--border2);background:var(--bg3)}
+.nav-link.active{color:var(--accent2);border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.08)}
+.btn-theme{
+  width:34px;height:34px;border-radius:var(--r);
+  border:1px solid var(--border2);background:var(--bg3);
+  color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all var(--tr);
+}
+.btn-theme:hover{color:var(--accent2);border-color:var(--accent)}
+.btn-theme svg{width:15px;height:15px}
+
+/* ── Hero ── */
+.hero{
+  position:relative;overflow:hidden;
+  padding:80px 32px 60px;
+  text-align:center;
+  z-index:1;
+}
+.hero-glow{
+  position:absolute;top:-120px;left:50%;transform:translateX(-50%);
+  width:600px;height:400px;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(99,102,241,0.15) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-m);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--accent2);background:rgba(99,102,241,0.1);
+  border:1px solid rgba(99,102,241,0.25);
+  border-radius:100px;padding:5px 14px;margin-bottom:24px;
+}
+.hero-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+h1{
+  font-family:var(--font-d);font-size:clamp(32px,5vw,58px);
+  font-weight:800;letter-spacing:-0.02em;line-height:1.1;
+  color:var(--text);margin-bottom:20px;
+}
+h1 em{font-style:italic;color:var(--accent2)}
+.hero-desc{
+  font-size:17px;color:var(--text2);max-width:600px;
+  margin:0 auto 40px;line-height:1.7;
+}
+.hero-chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.chip{
+  font-family:var(--font-m);font-size:11px;
+  padding:6px 14px;border-radius:100px;
+  border:1px solid var(--border2);color:var(--text2);
+  background:var(--bg2);cursor:default;
+}
+.chip.c-green{border-color:rgba(52,211,153,0.3);color:var(--green);background:rgba(52,211,153,0.07)}
+.chip.c-amber{border-color:rgba(251,191,36,0.3);color:var(--amber);background:rgba(251,191,36,0.07)}
+.chip.c-purple{border-color:rgba(192,132,252,0.3);color:var(--purple);background:rgba(192,132,252,0.07)}
+
+/* ── Layout ── */
+.container{max-width:900px;margin:0 auto;padding:0 32px 80px;position:relative;z-index:1}
+
+/* ── TOC ── */
+.toc{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:24px 28px;margin-bottom:48px;
+}
+.toc-title{
+  font-family:var(--font-m);font-size:10px;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--text3);margin-bottom:16px;
+}
+.toc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px}
+.toc-item{
+  display:flex;align-items:center;gap-10px;
+  text-decoration:none;color:var(--text2);font-size:13px;
+  padding:8px 12px;border-radius:var(--r);border:1px solid transparent;
+  transition:all var(--tr);gap:8px;
+}
+.toc-item:hover{color:var(--accent2);background:var(--bg3);border-color:var(--border)}
+.toc-num{
+  font-family:var(--font-m);font-size:10px;
+  color:var(--accent2);width:20px;flex-shrink:0;
+}
+
+/* ── Sections ── */
+.section{margin-bottom:56px}
+.section-header{
+  display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;
+  padding-bottom:20px;border-bottom:1px solid var(--border);
+}
+.section-num{
+  font-family:var(--font-d);font-size:48px;font-weight:800;
+  color:var(--border2);line-height:1;flex-shrink:0;margin-top:-6px;
+}
+h2{font-family:var(--font-d);font-size:28px;font-weight:700;letter-spacing:-0.01em;color:var(--text);line-height:1.2}
+h3{font-family:var(--font-d);font-size:20px;font-weight:600;color:var(--text);margin-bottom:12px;margin-top:28px}
+p{color:var(--text2);font-size:15px;margin-bottom:14px;line-height:1.75}
+strong{color:var(--text);font-weight:600}
+
+/* ── Callouts ── */
+.callout{
+  border-radius:var(--r);padding:16px 18px;margin:20px 0;
+  display:flex;gap:12px;align-items:flex-start;font-size:14px;
+}
+.callout-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.callout p{margin:0;font-size:14px}
+.callout.info{background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:var(--text2)}
+.callout.tip {background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);color:var(--text2)}
+.callout.warn{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);color:var(--text2)}
+
+/* ── Math blocks ── */
+.math-block{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r);padding:20px 24px;margin:20px 0;
+  font-family:var(--font-m);font-size:14px;
+  overflow-x:auto;position:relative;
+}
+.math-label{
+  position:absolute;top:10px;right:12px;
+  font-size:10px;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--text3);font-family:var(--font-m);
+}
+.math-line{color:var(--text);line-height:2.0;white-space:pre-wrap}
+.math-comment{color:var(--text3);font-size:12px}
+.math-result{
+  margin-top:12px;padding-top:12px;border-top:1px solid var(--border2);
+  color:var(--green);font-weight:500;
+}
+
+/* ── Phasor diagram inline ── */
+.phasor-wrap{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:24px;margin:24px 0;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+.phasor-caption{font-size:12px;color:var(--text3);font-family:var(--font-m);letter-spacing:0.04em;text-align:center}
+
+/* ── Step boxes ── */
+.steps{display:flex;flex-direction:column;gap:12px;margin:20px 0}
+.step{
+  display:flex;gap:16px;align-items:flex-start;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px 18px;
+}
+.step-num{
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--cyan));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-m);font-size:11px;font-weight:500;color:#fff;
+}
+.step-body{flex:1}
+.step-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.step-desc{font-size:13px;color:var(--text2);line-height:1.6;margin:0}
+
+/* ── Phase cards ── */
+.phase-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+.phase-card{
+  border-radius:var(--r);padding:16px;
+  border:1px solid var(--border2);
+  background:var(--bg2);
+}
+.phase-card.r{border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.05)}
+.phase-card.y{border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.05)}
+.phase-card.b{border-color:rgba(96,165,250,0.3);background:rgba(96,165,250,0.05)}
+.phase-label{font-family:var(--font-m);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
+.phase-card.r .phase-label{color:var(--phaseR)}
+.phase-card.y .phase-label{color:var(--phaseY)}
+.phase-card.b .phase-label{color:var(--phaseB)}
+.phase-eq{font-family:var(--font-m);font-size:13px;color:var(--text);line-height:1.8}
+.phase-mta{font-size:12px;color:var(--text3);margin-top:6px}
+
+/* ── Comparison table ── */
+.compare-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}
+.compare-table th{
+  padding:10px 14px;text-align:left;
+  font-family:var(--font-m);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--text3);background:var(--bg3);border-bottom:1px solid var(--border2);
+}
+.compare-table td{
+  padding:12px 14px;border-bottom:1px solid var(--border);
+  color:var(--text2);font-size:13px;vertical-align:top;line-height:1.5;
+}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--bg3)}
+.td-green{color:var(--green)}
+.td-amber{color:var(--amber)}
+
+/* ── IEC badge ── */
+.iec-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-m);font-size:11px;
+  padding:4px 12px;border-radius:100px;
+  background:rgba(99,102,241,0.1);
+  border:1px solid rgba(99,102,241,0.3);
+  color:var(--accent2);cursor:pointer;
+  text-decoration:none;
+  transition:all var(--tr);
+  vertical-align:middle;
+  margin:0 2px;
+}
+.iec-badge:hover{background:rgba(99,102,241,0.2);border-color:var(--accent2)}
+.iec-badge svg{width:12px;height:12px}
+
+/* ── Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+  opacity:0;pointer-events:none;transition:opacity 0.25s ease;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);width:100%;max-width:780px;
+  max-height:88vh;overflow-y:auto;
+  transform:translateY(20px);transition:transform 0.25s ease;
+}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal::-webkit-scrollbar{width:4px}
+.modal::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.modal-header{
+  position:sticky;top:0;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:20px 24px;display:flex;align-items:center;justify-content:space-between;
+  z-index:10;
+}
+.modal-title{font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--text)}
+.modal-sub{font-size:12px;color:var(--text3);font-family:var(--font-m);margin-top:2px}
+.modal-close{
+  width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);
+  background:var(--bg3);color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:all var(--tr);
+}
+.modal-close:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.modal-body{padding:24px}
+.modal-tabs{
+  display:flex;gap:4px;border-bottom:1px solid var(--border);
+  padding:0 24px;margin-bottom:0;
+}
+.modal-tab{
+  padding:10px 16px;font-size:12px;font-family:var(--font-m);
+  color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:all var(--tr);background:none;border-top:none;border-left:none;border-right:none;
+}
+.modal-tab:hover{color:var(--text2)}
+.modal-tab.active{color:var(--accent2);border-bottom-color:var(--accent2)}
+.modal-panel{display:none;padding:24px}
+.modal-panel.active{display:block}
+
+/* ── Inline code ── */
+code{
+  font-family:var(--font-m);font-size:12px;
+  background:var(--bg4);border:1px solid var(--border2);
+  border-radius:4px;padding:1px 6px;color:var(--cyan);
+}
+
+/* ── Divider ── */
+hr{border:none;border-top:1px solid var(--border);margin:40px 0}
+
+/* ── Footer ── */
+footer{
+  border-top:1px solid var(--border);
+  padding:24px 32px;text-align:center;
+  font-size:12px;color:var(--text3);font-family:var(--font-m);
+  position:relative;z-index:1;
+}
+
+@media(max-width:640px){
+  .container{padding:0 16px 60px}
+  .phase-grid{grid-template-columns:1fr}
+  header{padding:12px 16px}
+  .hero{padding:48px 16px 40px}
+  .modal{max-height:95vh}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <a class="logo" href="index.html">
+    <div class="logo-icon">D</div>
+    <div>
+      <div class="logo-text">DOC Relay</div>
+      <div class="logo-sub">Protection Guide</div>
+    </div>
+  </a>
+  <div class="header-nav">
+    <a class="nav-link" href="index.html">← Visualizer</a>
+    <a class="nav-link active" href="#">Guide</a>
+    <button class="btn-theme" onclick="toggleTheme()" title="Toggle theme">
+      <svg id="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>
+      <svg id="moon-icon" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-tag">
+    <span></span> Beginner-Friendly Guide
+  </div>
+  <h1>Directional Overcurrent &<br><em>Earth Fault Protection</em></h1>
+  <p class="hero-desc">A complete walkthrough — from first principles to full MTA calculations — for cross-polarisation and zero-sequence polarisation methods.</p>
+  <div class="hero-chips">
+    <span class="chip c-green">Cross-Polarisation</span>
+    <span class="chip c-amber">Zero-Sequence</span>
+    <span class="chip c-purple">IEC 60255</span>
+    <span class="chip">63.51 V Secondary</span>
+    <span class="chip">45° Fault Angle</span>
+  </div>
+</div>
+
+<!-- ── Main Content ── -->
+<div class="container">
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <div class="toc-grid">
+      <a class="toc-item" href="#s1"><span class="toc-num">01</span>What is a DOC relay?</a>
+      <a class="toc-item" href="#s2"><span class="toc-num">02</span>The problem: why direction matters</a>
+      <a class="toc-item" href="#s3"><span class="toc-num">03</span>Phasors — quick primer</a>
+      <a class="toc-item" href="#s4"><span class="toc-num">04</span>Cross-polarisation (Ph–Ph faults)</a>
+      <a class="toc-item" href="#s5"><span class="toc-num">05</span>Zero-sequence polarisation (Earth faults)</a>
+      <a class="toc-item" href="#s6"><span class="toc-num">06</span>MTA, Operating zone & blind zone</a>
+      <a class="toc-item" href="#s7"><span class="toc-num">07</span>Comparison summary</a>
+    </div>
+  </div>
+
+  <!-- ── Section 1 ── -->
+  <div class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div>
+        <h2>What is a Directional Overcurrent Relay?</h2>
+      </div>
+    </div>
+
+    <p>An <strong>overcurrent relay (OC)</strong> simply trips when current exceeds a set threshold — like a circuit breaker. But on a <strong>meshed network</strong> (where power can flow from two directions), knowing that current is high is not enough. You also need to know <em>which direction</em> the fault current is flowing.</p>
+
+    <p>A <strong>Directional Overcurrent (DOC) relay</strong> adds a directional element to the overcurrent element. It compares the angle of the fault current against a reference voltage phasor. Only when the current is flowing in the <em>forward</em> direction <strong>AND</strong> exceeds the threshold will the relay trip.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <p><strong>Simple analogy:</strong> Imagine a one-way traffic sensor. It counts cars (overcurrent), but only triggers an alarm if they're travelling the wrong way (directionality). A DOC relay is that sensor — for electrical fault current.</p>
+    </div>
+
+    <p>DOC relays follow <a class="iec-badge" onclick="openModal('overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      IEC 60255-151
+    </a> which defines the operating characteristics, torque equation, and timing curves for directional protection elements.</p>
+  </div>
+
+  <!-- ── Section 2 ── -->
+  <div class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div><h2>The Problem — Why Direction Matters</h2></div>
+    </div>
+
+    <p>Consider a substation bus fed from <strong>two sources</strong> — Source A on the left and Source B on the right. A feeder goes out from the middle of the bus.</p>
+
+    <p>When a fault occurs <em>on the feeder</em>, both sources pump current <strong>into</strong> the fault. The relay on the feeder should see this as a <em>forward</em> fault and trip. But the relay on Source B sees the same high current — however that current is actually flowing <em>away</em> from the fault (toward Source A). It should <strong>not</strong> trip.</p>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p>A plain overcurrent relay <strong>cannot</strong> distinguish these two cases. It sees high current in both relays and trips both — blacking out a healthy source. The directional element solves this by checking the current angle against a <strong>polarising voltage reference</strong>.</p>
+    </div>
+  </div>
+
+  <!-- ── Section 3 ── -->
+  <div class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div><h2>Phasors — Quick Primer</h2></div>
+    </div>
+
+    <p>In AC systems, voltages and currents are <strong>sinusoidal</strong>. We represent them as <strong>phasors</strong> — rotating arrows where the <em>length</em> is the magnitude and the <em>angle</em> is the phase position relative to a reference.</p>
+
+    <p>Our three-phase system voltages at the relay secondary (VT ratio gives <strong>63.51 V</strong>) are:</p>
+
+    <div class="math-block">
+      <div class="math-label">System Voltages</div>
+      <div class="math-line">  VR = 63.51 V  ∠ 0°     (Reference — R phase, on the horizontal axis)</div>
+      <div class="math-line">  VY = 63.51 V  ∠ 240°   (Y phase, lags VR by 120°)</div>
+      <div class="math-line">  VB = 63.51 V  ∠ 120°   (B phase, lags VR by 240°)</div>
+    </div>
+
+    <div class="phasor-wrap">
+      <svg viewBox="0 0 280 280" width="220" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="140" cy="140" r="100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <line x1="40" y1="140" x2="240" y2="140" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <line x1="140" y1="40" x2="140" y2="240" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <!-- VR at 0° -->
+        <line x1="140" y1="140" x2="240" y2="140" stroke="#f87171" stroke-width="2.5" marker-end="url(#ar)"/>
+        <text x="248" y="144" font-size="11" fill="#f87171" font-family="DM Mono,monospace" font-weight="600">VR 0°</text>
+        <!-- VB at 120° -->
+        <line x1="140" y1="140" x2="90" y2="53.4" stroke="#60a5fa" stroke-width="2.5" marker-end="url(#ar)"/>
+        <text x="72" y="46" font-size="11" fill="#60a5fa" font-family="DM Mono,monospace" font-weight="600">VB 120°</text>
+        <!-- VY at 240° -->
+        <line x1="140" y1="140" x2="90" y2="226.6" stroke="#fbbf24" stroke-width="2.5" marker-end="url(#ar)"/>
+        <text x="60" y="242" font-size="11" fill="#fbbf24" font-family="DM Mono,monospace" font-weight="600">VY 240°</text>
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <circle cx="140" cy="140" r="3" fill="rgba(255,255,255,0.4)"/>
+      </svg>
+      <div class="phasor-caption">Three-phase voltage phasors at relay secondary · 63.51 V each · 120° apart</div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">✅</span>
+      <p>These three phasors are <strong>always fixed</strong> in our tool. They are the healthy system voltages measured at the relay terminals. They rotate together at 50 Hz, but their <em>relative angles</em> — 0°, 120°, 240° — never change under normal conditions.</p>
+    </div>
+  </div>
+
+  <!-- ── Section 4 ── -->
+  <div class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div><h2>Cross-Polarisation — Phase-to-Phase Faults</h2></div>
+    </div>
+
+    <h3>The challenge during a fault</h3>
+    <p>When a <strong>phase-to-phase fault</strong> occurs (e.g. R–Y short circuit), the <em>faulted phase voltage collapses</em> toward zero. If we used the faulted phase voltage as the reference for our directional element, the reference itself would disappear — the relay would have nothing to compare against.</p>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Problem:</strong> You cannot use the voltage of a faulted phase as a reference — it collapses during the fault.</p>
+    </div>
+
+    <h3>The solution: use the healthy phase voltages</h3>
+    <p>For a fault on <strong>phase R</strong>, phases Y and B are unaffected. We subtract them to get a <strong>cross-polarising voltage</strong> <code>Vyb = Vy − Vb</code>. This voltage stays healthy and has a well-defined angle we can use as our reference.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Identify the healthy phases</div>
+          <div class="step-desc">For R-phase fault → healthy phases are Y and B. For Y-phase fault → healthy phases are R and B. For B-phase fault → healthy phases are R and Y.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Form the polarising voltage (phasor subtraction)</div>
+          <div class="step-desc">Subtract the two healthy phasors: <code>Vpol = V(leading healthy) − V(lagging healthy)</code>. This gives a resultant phasor at a defined angle.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Apply the MTA offset</div>
+          <div class="step-desc">Add the relay's characteristic angle (fault angle, typically 45°) to the reference angle. This is the Maximum Torque Angle — the relay operates at peak sensitivity at this angle.</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Worked example — R-phase fault</h3>
+
+    <div class="math-block">
+      <div class="math-label">Step-by-step · R-Phase Fault</div>
+      <div class="math-line">  <span style="color:var(--text3)">Given:</span>  VY = 63.51 V ∠240°,   VB = 63.51 V ∠120°</div>
+      <div class="math-line"></div>
+      <div class="math-line">  <span style="color:var(--text3)">Step 1 · Convert to rectangular form:</span></div>
+      <div class="math-line">    VY = 63.51×cos(240°) + j·63.51×sin(240°)</div>
+      <div class="math-line">       = 63.51×(−0.5) + j·63.51×(−0.866)</div>
+      <div class="math-line">       = −31.755 − j54.99</div>
+      <div class="math-line"></div>
+      <div class="math-line">    VB = 63.51×cos(120°) + j·63.51×sin(120°)</div>
+      <div class="math-line">       = 63.51×(−0.5) + j·63.51×(+0.866)</div>
+      <div class="math-line">       = −31.755 + j54.99</div>
+      <div class="math-line"></div>
+      <div class="math-line">  <span style="color:var(--text3)">Step 2 · Subtract (VY − VB):</span></div>
+      <div class="math-line">    Vyb = (−31.755 − j54.99) − (−31.755 + j54.99)</div>
+      <div class="math-line">        = 0 − j109.98</div>
+      <div class="math-line">        = 110 V ∠270°   (straight down on phasor diagram)</div>
+      <div class="math-line"></div>
+      <div class="math-line">  <span style="color:var(--text3)">Step 3 · Add fault angle (MTA offset = 45°):</span></div>
+      <div class="math-line">    MTA = 270° + 45° = 315°</div>
+      <div class="math-result">  ✓  R-phase fault → Polarising reference = 270°  →  MTA = 315°</div>
+    </div>
+
+    <h3>All three phases — cross-polarisation summary</h3>
+
+    <div class="phase-grid">
+      <div class="phase-card r">
+        <div class="phase-label">R-Phase Fault</div>
+        <div class="phase-eq">Vpol = Vy − Vb<br>= 63.51∠240° − 63.51∠120°<br>= <strong>110 V ∠270°</strong></div>
+        <div class="phase-mta">MTA = 270° + 45° = <strong style="color:var(--phaseR)">315°</strong></div>
+      </div>
+      <div class="phase-card y">
+        <div class="phase-label">Y-Phase Fault</div>
+        <div class="phase-eq">Vpol = Vr − Vb<br>= 63.51∠0° − 63.51∠120°<br>= <strong>110 V ∠330°</strong> → ref <strong>150°</strong></div>
+        <div class="phase-mta">MTA = 150° + 45° = <strong style="color:var(--phaseY)">195°</strong></div>
+      </div>
+      <div class="phase-card b">
+        <div class="phase-label">B-Phase Fault</div>
+        <div class="phase-eq">Vpol = Vr − Vy<br>= 63.51∠0° − 63.51∠240°<br>= <strong>110 V ∠30°</strong></div>
+        <div class="phase-mta">MTA = 30° + 45° = <strong style="color:var(--phaseB)">75°</strong></div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">📐</span>
+      <p>Notice the cross-polarising voltage magnitude is always <strong>√3 × Vphase = √3 × 63.51 ≈ 110 V</strong>. This is because subtracting two phasors 120° apart always yields a resultant √3 times larger. This is identical to the line voltage.</p>
+    </div>
+
+    <p>This method is defined under <a class="iec-badge" onclick="openModal('crossPol')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      IEC 60255-151 §5.4 Cross-Polarisation
+    </a> as the standard approach for phase-to-phase directional elements.</p>
+  </div>
+
+  <!-- ── Section 5 ── -->
+  <div class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div><h2>Zero-Sequence Polarisation — Earth Faults</h2></div>
+    </div>
+
+    <h3>Why earth faults are different</h3>
+    <p>An <strong>earth fault</strong> (single-phase to ground) involves current flowing through the earth path. The fault current contains a large <strong>zero-sequence component</strong> — a component that is <em>identical in all three phases</em> (same magnitude, same angle).</p>
+
+    <p>For earth faults, cross-polarisation doesn't apply because the fault involves ground, not a phase-to-phase short. Instead, we use the <strong>zero-sequence voltage V₀</strong> as the polarising reference.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">🌍</span>
+      <p><strong>Zero-sequence voltage (V₀)</strong> only appears when there is an earth fault. Under balanced conditions V₀ = 0. During an earth fault, V₀ rises sharply — making it an ideal, unambiguous polarising signal for earth fault direction.</p>
+    </div>
+
+    <h3>How V₀ relates to phase voltages</h3>
+    <p>The zero-sequence voltage is the average of the three phase voltages. During a single-phase earth fault on phase R, the faulted phase voltage collapses and V₀ appears at an angle close to the faulted phase angle:</p>
+
+    <div class="math-block">
+      <div class="math-label">Zero-Sequence Voltage</div>
+      <div class="math-line">  V₀ = (VR + VY + VB) / 3</div>
+      <div class="math-line"></div>
+      <div class="math-line">  Under normal (balanced) conditions:</div>
+      <div class="math-line">  V₀ = (63.51∠0° + 63.51∠240° + 63.51∠120°) / 3 = 0  ✓</div>
+      <div class="math-line"></div>
+      <div class="math-line">  During R-phase earth fault (VR collapses):</div>
+      <div class="math-line">  V₀ ≈ reference angle aligned with the faulted phase = 0°</div>
+      <div class="math-result">  ✓  V₀ reference angle = faulted phase angle</div>
+    </div>
+
+    <h3>MTA offset for earth fault</h3>
+    <p>For earth fault elements, the relay characteristic angle is typically set to <strong>−45°</strong> (or equivalently +315°). This accounts for the angle between the zero-sequence current and voltage in a typical earthed network, ensuring maximum relay torque aligns with the actual fault current direction.</p>
+
+    <div class="math-block">
+      <div class="math-label">Earth Fault MTA Calculation</div>
+      <div class="math-line">  General formula:</div>
+      <div class="math-line">    MTA = V₀ reference angle + (−45°)</div>
+      <div class="math-line">        = Faulted phase angle − 45°</div>
+      <div class="math-line"></div>
+      <div class="math-line">  R-phase earth fault:  MTA = 0°   + (−45°) = −45° = <strong>315°</strong></div>
+      <div class="math-line">  Y-phase earth fault:  MTA = 240° + (−45°) = <strong>195°</strong></div>
+      <div class="math-line">  B-phase earth fault:  MTA = 120° + (−45°) = <strong>75°</strong></div>
+      <div class="math-result">  ✓  Same MTA values as cross-polarisation — but derived differently</div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🔍</span>
+      <p>You'll notice the final MTA values are the same (315°, 195°, 75°) for both methods at their respective phases. This is intentional — relay engineers choose fault angles and offsets so that the operating zones remain consistent across fault types, making coordination simpler.</p>
+    </div>
+
+    <p>Zero-sequence polarisation is standardised under <a class="iec-badge" onclick="openModal('zeroSeq')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      IEC 60255-151 §5.5 Zero-Sequence
+    </a> and requires the relay to have access to the residual voltage connection <code>VR + VY + VB</code> from a VT open-delta winding or neutral point measurement.</p>
+  </div>
+
+  <!-- ── Section 6 ── -->
+  <div class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <div><h2>MTA, Operating Zone & Blind Zone</h2></div>
+    </div>
+
+    <h3>Maximum Torque Angle (MTA)</h3>
+    <p>The <strong>MTA</strong> is the angle at which the relay produces its <em>maximum operating torque</em> — meaning it is most sensitive and will trip fastest. It is the direction of the reference phasor after adding the fault characteristic angle.</p>
+
+    <div class="math-block">
+      <div class="math-label">General MTA Formula</div>
+      <div class="math-line">  MTA = Polarising reference angle + Fault characteristic angle (RCA)</div>
+      <div class="math-line"></div>
+      <div class="math-line">  Where RCA (Relay Characteristic Angle) is typically:</div>
+      <div class="math-line">    Phase-to-phase elements:  RCA = +45°  (common setting)</div>
+      <div class="math-line">    Earth fault elements:      RCA = −45°  (common setting)</div>
+    </div>
+
+    <h3>Operating zone — the ±90° rule</h3>
+    <p>The relay <strong>operates (trips)</strong> when the fault current phasor falls within <strong>±90°</strong> of the MTA. This 180° sector is the <em>operating zone</em>. The opposite 180° is the <em>restraint zone</em> — relay will NOT trip even if current exceeds the threshold.</p>
+
+    <div class="math-block">
+      <div class="math-label">Operating Zone Boundaries</div>
+      <div class="math-line">  Operating zone:   from (MTA − 90°) to (MTA + 90°)</div>
+      <div class="math-line">  Restraint zone:   from (MTA + 90°) to (MTA − 90°)  [other half]</div>
+      <div class="math-line"></div>
+      <div class="math-line">  Example — R-phase fault, MTA = 315°:</div>
+      <div class="math-line">    Lower boundary = 315° − 90° = 225°</div>
+      <div class="math-line">    Upper boundary = 315° + 90° = 405° = 45°</div>
+      <div class="math-result">  ✓  Operating zone: 225° → 315° → 45°  (sweeping through 315°)</div>
+    </div>
+
+    <h3>Blind zone — the uncertainty region</h3>
+    <p>At the exact boundary (MTA ± 90°), the relay torque is <strong>zero</strong>. In practice, real-world noise, CT/VT errors, and system disturbances mean that a fault current very close to the boundary may or may not operate the relay reliably.</p>
+
+    <p>A <strong>blind zone</strong> of typically <strong>5°</strong> is defined <em>inside the operating zone</em>, adjacent to each boundary. In this zone, the relay <em>might</em> operate, but is not guaranteed to operate reliably.</p>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p>The blind zone sits <strong>entirely within the operating region</strong> — touching the boundary and extending 5° inward toward the MTA. It does <strong>not</strong> overlap into the restraint zone. Fault currents falling in the blind zone are uncertain — the relay may or may not trip.</p>
+    </div>
+
+    <div class="math-block">
+      <div class="math-label">Blind Zone Boundaries (5°)</div>
+      <div class="math-line">  Upper boundary blind zone:  (MTA + 90° − 5°) to (MTA + 90°)</div>
+      <div class="math-line">  Lower boundary blind zone:  (MTA − 90°) to (MTA − 90° + 5°)</div>
+      <div class="math-line"></div>
+      <div class="math-line">  Example — MTA = 315°:</div>
+      <div class="math-line">    Upper blind zone:  40° to 45°    [just inside operating, near 45° boundary]</div>
+      <div class="math-line">    Lower blind zone: 225° to 230°   [just inside operating, near 225° boundary]</div>
+    </div>
+  </div>
+
+  <!-- ── Section 7 ── -->
+  <div class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <div><h2>Comparison Summary</h2></div>
+    </div>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Cross-Polarisation</th>
+          <th>Zero-Sequence Polarisation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Fault type</strong></td>
+          <td class="td-green">Phase-to-phase (Ph–Ph)</td>
+          <td class="td-amber">Earth fault (Ph–E)</td>
+        </tr>
+        <tr>
+          <td><strong>Polarising signal</strong></td>
+          <td>Healthy phase line voltage<br><code>e.g. Vyb = Vy − Vb</code></td>
+          <td>Zero-sequence voltage<br><code>V₀ = (VR+VY+VB)/3</code></td>
+        </tr>
+        <tr>
+          <td><strong>Why this signal</strong></td>
+          <td>Faulted phase voltage collapses — healthy phases remain stable</td>
+          <td>V₀ is zero under normal conditions, rises only during earth faults</td>
+        </tr>
+        <tr>
+          <td><strong>Magnitude</strong></td>
+          <td>√3 × Vphase ≈ 110 V (at 63.51 V secondary)</td>
+          <td>Depends on fault impedance and neutral earthing</td>
+        </tr>
+        <tr>
+          <td><strong>RCA (fault angle)</strong></td>
+          <td>+45° (typical)</td>
+          <td>−45° (typical)</td>
+        </tr>
+        <tr>
+          <td><strong>R-phase MTA</strong></td>
+          <td class="td-green">270° + 45° = <strong>315°</strong></td>
+          <td class="td-amber">0° + (−45°) = <strong>315°</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Y-phase MTA</strong></td>
+          <td class="td-green">150° + 45° = <strong>195°</strong></td>
+          <td class="td-amber">240° − 45° = <strong>195°</strong></td>
+        </tr>
+        <tr>
+          <td><strong>B-phase MTA</strong></td>
+          <td class="td-green">30° + 45° = <strong>75°</strong></td>
+          <td class="td-amber">120° − 45° = <strong>75°</strong></td>
+        </tr>
+        <tr>
+          <td><strong>IEC standard</strong></td>
+          <td><a class="iec-badge" onclick="openModal('crossPol')" style="font-size:10px">IEC 60255-151 §5.4</a></td>
+          <td><a class="iec-badge" onclick="openModal('zeroSeq')" style="font-size:10px">IEC 60255-151 §5.5</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  DOC Relay Visualizer · IEC 60255 Reference Guide · Built for protection engineers
+</footer>
+
+<!-- ── IEC Modal ── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title">IEC 60255-151</div>
+        <div class="modal-sub" id="modal-sub">Measuring relays and protection equipment</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-tabs" id="modal-tabs"></div>
+    <div id="modal-panels"></div>
+  </div>
+</div>
+
+<script>
+/* ── Theme ── */
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  document.getElementById('sun-icon').style.display=dark?'none':'block';
+  document.getElementById('moon-icon').style.display=dark?'block':'none';
+}
+
+/* ── Modal content ── */
+const MODALS={
+  overview:{
+    title:'IEC 60255-151',
+    sub:'Functional requirements for directional overcurrent protection',
+    tabs:['Overview','Scope','Key Definitions'],
+    panels:[
+      `<h3>What is IEC 60255-151?</h3>
+       <p>IEC 60255-151 is the international standard that defines the <strong>functional requirements, performance characteristics, and testing procedures</strong> for directional overcurrent (DOC) relays used in power system protection.</p>
+       <p>Published by the International Electrotechnical Commission (IEC), it is part of the broader IEC 60255 family of measuring relay standards.</p>
+       <div class="callout info"><span class="callout-icon">📋</span><p>Full title: <em>"Measuring relays and protection equipment – Part 151: Functional requirements for over/under-current protection"</em></p></div>
+       <h3>Why it matters</h3>
+       <p>All modern numerical relays (SEL, GE, Siemens, ABB, etc.) are designed to comply with IEC 60255-151. When you set a relay's MTA, RCA, or characteristic angle, you are using parameters defined by this standard.</p>`,
+
+      `<h3>Scope of IEC 60255-151</h3>
+       <p>The standard covers:</p>
+       <div class="steps">
+         <div class="step"><div class="step-num">A</div><div class="step-body"><div class="step-title">Directional element (§5)</div><div class="step-desc">Defines how the directional element must determine fault direction using polarising quantities — including cross-polarisation (§5.4) and zero-sequence polarisation (§5.5).</div></div></div>
+         <div class="step"><div class="step-num">B</div><div class="step-body"><div class="step-title">Overcurrent element (§6)</div><div class="step-desc">Defines pickup thresholds, time-overcurrent (TOC) curves, and instantaneous element requirements.</div></div></div>
+         <div class="step"><div class="step-num">C</div><div class="step-body"><div class="step-title">Combination (§7)</div><div class="step-desc">Defines how the directional and overcurrent elements combine — both must assert simultaneously for a trip output.</div></div></div>
+         <div class="step"><div class="step-num">D</div><div class="step-body"><div class="step-title">Performance (§8)</div><div class="step-desc">Defines accuracy requirements, operating time tolerances, and test methods for type testing.</div></div></div>
+       </div>`,
+
+      `<h3>Key Terms defined by IEC 60255-151</h3>
+       <table class="compare-table">
+         <tr><th>Term</th><th>Definition</th></tr>
+         <tr><td><strong>RCA</strong></td><td>Relay Characteristic Angle — the angle between polarising voltage and operating current at which relay torque is maximum. Same as MTA offset.</td></tr>
+         <tr><td><strong>MTA</strong></td><td>Maximum Torque Angle — the angle of fault current at which the directional element produces maximum output. = polarising reference + RCA.</td></tr>
+         <tr><td><strong>Polarising quantity</strong></td><td>The voltage (or current) used as reference for direction comparison. Must remain healthy during the fault.</td></tr>
+         <tr><td><strong>Torque</strong></td><td>The directional element output, proportional to V·I·cos(θ−MTA). Positive torque → operate; negative torque → restrain.</td></tr>
+         <tr><td><strong>Operating zone</strong></td><td>The ±90° sector around the MTA where torque is positive and the element will assert.</td></tr>
+       </table>`
+    ]
+  },
+
+  crossPol:{
+    title:'IEC 60255-151 §5.4',
+    sub:'Cross-Polarisation for phase-to-phase directional elements',
+    tabs:['Principle','Calculation','Worked Example'],
+    panels:[
+      `<h3>Cross-Polarisation Principle</h3>
+       <p>IEC 60255-151 §5.4 specifies that for <strong>phase-to-phase directional elements</strong>, the relay shall use a <strong>cross-polarised voltage</strong> — that is, a voltage derived from the <em>healthy phases</em> rather than the faulted phase.</p>
+       <div class="callout warn"><span class="callout-icon">⚠️</span><p>The faulted phase voltage cannot be used as it <strong>collapses during the fault</strong>, making it unsuitable as a stable directional reference.</p></div>
+       <h3>Standard assignment table (per IEC 60255-151 §5.4)</h3>
+       <table class="compare-table">
+         <tr><th>Faulted phase</th><th>Polarising voltage</th><th>Reference angle</th></tr>
+         <tr><td style="color:var(--phaseR)"><strong>R</strong></td><td><code>Vyb = Vy − Vb</code></td><td>270°</td></tr>
+         <tr><td style="color:var(--phaseY)"><strong>Y</strong></td><td><code>Vrb = Vr − Vb</code></td><td>150°</td></tr>
+         <tr><td style="color:var(--phaseB)"><strong>B</strong></td><td><code>Vry = Vr − Vy</code></td><td>30°</td></tr>
+       </table>
+       <p style="margin-top:14px">The healthy phase pair is always the two phases that are <strong>not</strong> involved in the fault. The subtraction gives a phasor of magnitude √3 × Vphase at a specific reference angle.</p>`,
+
+      `<h3>Mathematical Derivation</h3>
+       <div class="math-block">
+         <div class="math-label">Phasor Subtraction Formula</div>
+         <div class="math-line">  For two phasors A∠α and B∠β:</div>
+         <div class="math-line">  A∠α − B∠β = (A·cosα − B·cosβ) + j(A·sinα − B·sinβ)</div>
+         <div class="math-line"></div>
+         <div class="math-line">  Magnitude  = √[(A·cosα − B·cosβ)² + (A·sinα − B·sinβ)²]</div>
+         <div class="math-line">  Angle      = atan2(imag, real)</div>
+         <div class="math-line"></div>
+         <div class="math-line">  For equal magnitudes 120° apart:</div>
+         <div class="math-line">  |V∠α − V∠(α−120°)| = √3 × V  at angle (α − 90°)</div>
+       </div>
+       <div class="math-block">
+         <div class="math-label">MTA Formula</div>
+         <div class="math-line">  MTA = Reference angle + RCA</div>
+         <div class="math-line">  RCA = Relay Characteristic Angle (typically 45° for Ph-Ph)</div>
+         <div class="math-line"></div>
+         <div class="math-line">  R-fault: MTA = 270° + 45° = 315°</div>
+         <div class="math-line">  Y-fault: MTA = 150° + 45° = 195°</div>
+         <div class="math-line">  B-fault: MTA = 30°  + 45° = 75°</div>
+       </div>`,
+
+      `<h3>Worked Example — Y-phase fault</h3>
+       <div class="math-block">
+         <div class="math-label">Y-Phase Fault · Full Calculation</div>
+         <div class="math-line">  Polarising voltage: Vrb = Vr − Vb</div>
+         <div class="math-line"></div>
+         <div class="math-line">  VR = 63.51∠0°  = 63.51 + j0</div>
+         <div class="math-line">  VB = 63.51∠120° = 63.51×(−0.5) + j63.51×(0.866)</div>
+         <div class="math-line">                  = −31.755 + j54.99</div>
+         <div class="math-line"></div>
+         <div class="math-line">  Vrb = VR − VB</div>
+         <div class="math-line">      = (63.51 − (−31.755)) + j(0 − 54.99)</div>
+         <div class="math-line">      = 95.265 − j54.99</div>
+         <div class="math-line"></div>
+         <div class="math-line">  Magnitude = √(95.265² + 54.99²) = √(9075.4 + 3023.9) = √12099 ≈ 110 V ✓</div>
+         <div class="math-line">  Angle     = atan2(−54.99, 95.265) = −30° = 330°</div>
+         <div class="math-line">            → Convention used: leading ref = 150° (relay uses the leading polarity)</div>
+         <div class="math-line"></div>
+         <div class="math-line">  MTA = 150° + 45° = 195°</div>
+         <div class="math-result">  ✓  Y-phase fault MTA = 195°  |  Operating zone: 105° → 285°</div>
+       </div>`
+    ]
+  },
+
+  zeroSeq:{
+    title:'IEC 60255-151 §5.5',
+    sub:'Zero-Sequence Polarisation for earth fault directional elements',
+    tabs:['Principle','Calculation','Worked Example'],
+    panels:[
+      `<h3>Zero-Sequence Polarisation Principle</h3>
+       <p>IEC 60255-151 §5.5 specifies that earth fault directional elements shall use <strong>zero-sequence voltage (V₀)</strong> or <strong>zero-sequence current (I₀)</strong> from a healthy source as the polarising quantity.</p>
+       <div class="callout info"><span class="callout-icon">🌍</span><p><strong>Zero-sequence quantities only exist during earth faults.</strong> Under balanced three-phase conditions, V₀ = I₀ = 0. Their appearance is unambiguous evidence of an earth fault — and their angle reliably indicates fault direction.</p></div>
+       <h3>Why zero-sequence voltage?</h3>
+       <p>During a phase-to-earth fault, the neutral point of the star-connected VT secondary shifts. The residual voltage <code>VR + VY + VB ≠ 0</code> — this residual IS the zero-sequence voltage (3V₀).</p>
+       <p>This is measured using an <strong>open-delta (broken-delta) VT secondary winding</strong>, which sums the three phase voltages and outputs 3V₀ directly — exactly what the relay needs for directional polarisation.</p>
+       <h3>V₀ reference angle</h3>
+       <p>The zero-sequence voltage reference angle aligns with the <strong>faulted phase angle</strong> because when that phase voltage collapses, the neutral displacement is in the direction of that phase.</p>
+       <table class="compare-table">
+         <tr><th>Earth fault on</th><th>V₀ reference angle</th><th>RCA</th><th>MTA</th></tr>
+         <tr><td style="color:var(--phaseR)"><strong>R-phase</strong></td><td>0°</td><td>−45°</td><td style="color:var(--green)"><strong>315°</strong></td></tr>
+         <tr><td style="color:var(--phaseY)"><strong>Y-phase</strong></td><td>240°</td><td>−45°</td><td style="color:var(--green)"><strong>195°</strong></td></tr>
+         <tr><td style="color:var(--phaseB)"><strong>B-phase</strong></td><td>120°</td><td>−45°</td><td style="color:var(--green)"><strong>75°</strong></td></tr>
+       </table>`,
+
+      `<h3>Torque Equation</h3>
+       <p>The directional element operates on a <strong>torque equation</strong>. For zero-sequence polarisation:</p>
+       <div class="math-block">
+         <div class="math-label">IEC 60255 Torque Equation</div>
+         <div class="math-line">  T = |V₀| × |I₀| × cos(θ − MTA)</div>
+         <div class="math-line"></div>
+         <div class="math-line">  Where:</div>
+         <div class="math-line">    V₀ = zero-sequence polarising voltage</div>
+         <div class="math-line">    I₀ = zero-sequence operating current</div>
+         <div class="math-line">    θ  = angle of I₀ measured from reference</div>
+         <div class="math-line">    MTA = maximum torque angle (relay setting)</div>
+         <div class="math-line"></div>
+         <div class="math-line">  T > 0  →  forward fault  →  element asserts (OPERATE)</div>
+         <div class="math-line">  T < 0  →  reverse fault  →  element blocks (RESTRAIN)</div>
+         <div class="math-line">  T = 0  →  exactly on boundary (±90° from MTA)</div>
+         <div class="math-result">  ✓  Maximum torque (T_max) occurs when θ = MTA  →  cos(0°) = 1</div>
+       </div>
+       <div class="math-block">
+         <div class="math-label">Operating Zone Condition</div>
+         <div class="math-line">  Relay operates when:</div>
+         <div class="math-line">    (MTA − 90°) ≤ θ ≤ (MTA + 90°)</div>
+         <div class="math-line">  Which is equivalent to:</div>
+         <div class="math-line">    cos(θ − MTA) > 0</div>
+       </div>`,
+
+      `<h3>Worked Example — B-phase earth fault</h3>
+       <div class="math-block">
+         <div class="math-label">B-Phase Earth Fault · Full Calculation</div>
+         <div class="math-line">  Faulted phase: B  →  VB angle = 120°</div>
+         <div class="math-line">  V₀ reference angle = 120°  (aligns with faulted phase)</div>
+         <div class="math-line">  RCA = −45°</div>
+         <div class="math-line"></div>
+         <div class="math-line">  MTA = V₀ reference + RCA</div>
+         <div class="math-line">      = 120° + (−45°)</div>
+         <div class="math-line">      = 75°</div>
+         <div class="math-line"></div>
+         <div class="math-line">  Operating zone lower boundary = 75° − 90° = −15° = 345°</div>
+         <div class="math-line">  Operating zone upper boundary = 75° + 90° = 165°</div>
+         <div class="math-line"></div>
+         <div class="math-line">  Blind zone (5°) inside operating region:</div>
+         <div class="math-line">    Near 165° boundary: 160° to 165°</div>
+         <div class="math-line">    Near 345° boundary: 345° to 350°</div>
+         <div class="math-result">  ✓  B-phase earth fault MTA = 75°  |  Operating zone: 345° → 75° → 165°</div>
+       </div>
+       <div class="callout tip"><span class="callout-icon">🔗</span><p>Open the <strong>Visualizer</strong> and select Earth Fault → B phase to see this zone drawn on the phasor diagram with all boundaries and blind zones marked.</p></div>`
+    ]
+  }
+};
+
+let activeModal=null;
+
+function openModal(key){
+  const m=MODALS[key];
+  if(!m)return;
+  activeModal=key;
+  document.getElementById('modal-title').textContent=m.title;
+  document.getElementById('modal-sub').textContent=m.sub;
+
+  const tabsEl=document.getElementById('modal-tabs');
+  const panelsEl=document.getElementById('modal-panels');
+  tabsEl.innerHTML='';
+  panelsEl.innerHTML='';
+
+  m.tabs.forEach((t,i)=>{
+    const btn=document.createElement('button');
+    btn.className='modal-tab'+(i===0?' active':'');
+    btn.textContent=t;
+    btn.onclick=()=>{
+      document.querySelectorAll('.modal-tab').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.modal-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('mpanel-'+i).classList.add('active');
+    };
+    tabsEl.appendChild(btn);
+
+    const panel=document.createElement('div');
+    panel.className='modal-panel'+(i===0?' active':'');
+    panel.id='mpanel-'+i;
+    panel.innerHTML=m.panels[i];
+    panelsEl.appendChild(panel);
+  });
+
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function closeModalOutside(e){
+  if(e.target===document.getElementById('modal-overlay')) closeModal();
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>
