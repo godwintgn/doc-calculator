@@ -176,7 +176,7 @@ header {
   border-bottom: 1px solid var(--border);
 }
 .section-title {
-  font-size: 9px;
+  font-size: 10px;
   font-family: var(--font-mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -326,6 +326,75 @@ header {
   width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
 }
 
+/* ── Theory / help ── */
+.theory-block {
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+}
+.theory-block > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+.theory-block > summary::-webkit-details-marker { display: none; }
+.theory-block > summary::before {
+  content: '';
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.theory-block > summary::after {
+  content: '+';
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.theory-block[open] > summary::after { content: '−'; }
+.theory-body {
+  padding: 0 16px 16px;
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.55;
+}
+.theory-body h4 {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 12px 0 6px;
+  letter-spacing: 0.04em;
+}
+.theory-body h4:first-child { margin-top: 0; }
+.theory-body p { margin-bottom: 8px; }
+.theory-body code {
+  font-size: 10px;
+  background: var(--bg3);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--text);
+}
+.theory-body .eq {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  display: block;
+  margin: 6px 0;
+  padding: 8px 10px;
+  background: var(--bg3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
 /* ── Canvas area ── */
 .canvas-area {
   background: var(--bg);
@@ -340,8 +409,26 @@ header {
 .canvas-wrap {
   width: 100%;
   max-width: 520px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.svg-frame {
+  width: 100%;
   aspect-ratio: 1;
   position: relative;
+}
+
+.canvas-caption {
+  font-size: 11px;
+  color: var(--text2);
+  text-align: center;
+  max-width: 440px;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
 }
 
 #psv {
@@ -433,7 +520,7 @@ header {
         <button class="seg on on-fwd" onclick="setDir('fwd',this)">↗ Forward</button>
         <button class="seg" onclick="setDir('rev',this)">↙ Reverse</button>
       </div>
-      <div class="dir-hint fwd" id="dir-hint">Fault in front of relay</div>
+      <div class="dir-hint fwd" id="dir-hint">Operate when current angle lies in the green semicircle about MTA (forward zone).</div>
     </div>
 
     <div class="section">
@@ -445,7 +532,7 @@ header {
       </div>
       <div class="input-row">
         <span class="input-label">Blind zone</span>
-        <input type="number" class="num-input" id="blind-zone" value="5" min="0" max="30">
+        <input type="number" class="num-input" id="blind-zone" value="0" min="0" max="30">
         <span class="input-unit">°</span>
       </div>
     </div>
@@ -480,6 +567,27 @@ header {
       </div>
     </div>
 
+    <details class="theory-block">
+      <summary>How it works</summary>
+      <div class="theory-body">
+        <h4>What is directional overcurrent?</h4>
+        <p>The relay compares the <strong>angle</strong> of an operating current phasor <code>I</code> (or <code>I</code> + <code>k·I₀</code> for earth) to a stable voltage reference <code>V<sub>pol</sub></code>. If the angle of <code>I</code> relative to <code>V<sub>pol</sub></code> falls inside the <strong>forward operating semicircle</strong> (here drawn as ±90° about <strong>MTA</strong>), the element declares “forward” and can trip; otherwise it restrains.</p>
+        <span class="eq">MTA = ref_angle + MTA_offset (mod 360°)</span>
+
+        <h4>Phase–phase (cross-polarization)</h4>
+        <p>For phase-to-phase faults, polarization uses a <strong>line-to-line</strong> voltage that avoids the most collapsed phase where possible (e.g. R-related loop → <code>V<sub>YB</sub></code>). Healthy phases still provide a measurable reference when the faulted phase voltage is small, so direction stays reliable near the relay.</p>
+
+        <h4>Earth fault (zero-sequence polarization)</h4>
+        <p>For earth faults, the reference aligns with <strong>zero-sequence voltage</strong> <code>3V₀</code> (labeled <code>V₀(R)</code>, etc. in this demo). Residual / zero-sequence current <code>I₀</code> is compared to <code>V₀</code>: <code>V₀</code> rises when the network’s neutral point shifts during ground faults, giving a consistent directional reference.</p>
+
+        <h4>MTA and blind zone</h4>
+        <p><strong>MTA</strong> (maximum torque axis) is the centerline of the comparator’s sensitive direction. <strong>Blind zones</strong> are narrow wedges straddling the ±90° boundaries to reduce chatter when the measured angle sits exactly on the edge.</p>
+
+        <h4>Forward vs Reverse</h4>
+        <p><strong>Forward</strong> uses MTA = ref + offset. <strong>Reverse</strong> shifts MTA by 180° so you visualize the <strong>reverse-directional</strong> characteristic: the green operate band rotates with MTA on the phasor diagram.</p>
+      </div>
+    </details>
+
     <div class="section">
       <div class="section-title">Voltage Reference (63.51 V sec.)</div>
       <table class="ref-table">
@@ -506,7 +614,7 @@ header {
       <div class="legend">
         <div class="leg-row"><div class="leg-swatch" style="background:var(--op);opacity:.7"></div>Operating zone (±90° from MTA)</div>
         <div class="leg-row"><div class="leg-swatch" style="background:var(--re);opacity:.5"></div>Restraint zone (non-operating)</div>
-        <div class="leg-row"><div class="leg-swatch" style="background:var(--blind);height:8px;border-radius:2px"></div>Blind zone (boundary ±5°)</div>
+        <div class="leg-row"><div class="leg-swatch" style="background:var(--blind);height:8px;border-radius:2px"></div><span id="leg-blind-text">Blind zone (±0° at boundaries)</span></div>
         <div class="leg-row"><div class="leg-swatch" style="background:var(--mta)"></div>MTA — max torque axis</div>
         <div class="leg-row"><div class="leg-swatch" style="background:var(--pol);height:2px;border-top: 2px dashed var(--pol);background:none"></div>Polarizing phasor</div>
         <div class="leg-row"><div class="leg-swatch" style="background:var(--accent-g);height:2px;border-top:2px dashed var(--accent-g);background:none"></div>Zone boundary lines</div>
@@ -518,7 +626,10 @@ header {
   <!-- ── Canvas ── -->
   <div class="canvas-area">
     <div class="canvas-wrap">
-      <svg id="psv" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="svg-frame">
+        <svg id="psv" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <p class="canvas-caption" id="canvas-caption">Green: operating (trip) semicircle ±90° about MTA · Red: restraint · Orange: blind bands at boundaries</p>
     </div>
   </div>
 
@@ -538,7 +649,7 @@ const PP_POL={R:{label:'Vyb',ref:270},Y:{label:'Vrb',ref:150},B:{label:'Vry',ref
 const EF_POL={R:{label:'V₀(R)',ref:0},Y:{label:'V₀(Y)',ref:240},B:{label:'V₀(B)',ref:120}};
 const PHASES=[{name:'R',angle:0},{name:'Y',angle:240},{name:'B',angle:120}];
 
-let state={type:'pp',phase:'R',offset:45,blind:5,dir:'fwd'};
+let state={type:'pp',phase:'R',offset:45,blind:0,dir:'fwd'};
 
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 
@@ -575,18 +686,18 @@ function draw(){
   const plus90=mod360(mta+90);
   const minus90=mod360(mta-90);
   const blind=state.blind;
-  const opC=state.dir==='fwd'?css('--op'):css('--re');
-  const reC=state.dir==='fwd'?css('--re'):css('--op');
+  const opC=css('--op');
+  const reC=css('--re');
 
-  // Zone fills
-  f.appendChild(arcSector(mta-90,mta+90,R,opC,state.dir==='fwd'?0.13:0.10));
-  f.appendChild(arcSector(mta+90,mta+270,R,reC,state.dir==='fwd'?0.08:0.13));
+  // Zone fills (operate always mta ± 90°; reverseCharacteristic rotates MTA by 180°, not colors)
+  f.appendChild(arcSector(mta-90,mta+90,R,opC,0.13));
+  f.appendChild(arcSector(mta+90,mta+270,R,reC,0.10));
 
   // Blind zone fills — entirely inside operating region, from boundary inward by blind° toward MTA
-  // plus90 boundary: inward means going backward (minus direction) toward MTA
-  f.appendChild(arcSector(plus90-blind, plus90, R, css('--blind'), 0.40));
-  // minus90 boundary: inward means going forward (plus direction) toward MTA
-  f.appendChild(arcSector(minus90, minus90+blind, R, css('--blind'), 0.40));
+  if(blind>0){
+    f.appendChild(arcSector(plus90-blind, plus90, R, css('--blind'), 0.40));
+    f.appendChild(arcSector(minus90, minus90+blind, R, css('--blind'), 0.40));
+  }
 
   // Outer ring
   f.appendChild(mk('circle',{cx,cy,r:R,fill:'none',stroke:css('--border2'),'stroke-width':'1'}));
@@ -708,34 +819,34 @@ function draw(){
   });
   mtl.textContent=mtaTxt; f.appendChild(mtl);
 
-  // Zone center labels
-  const opLabel=state.dir==='fwd'?'OPERATE':'RESTRAIN';
-  const reLabel=state.dir==='fwd'?'RESTRAIN':'OPERATE';
+  // Zone center labels (semicircle about MTA = operate)
   const ol=mk('text',{
     x:ppx(mta,R*0.40).toFixed(2),y:(ppy(mta,R*0.40)+3.5).toFixed(2),
     'text-anchor':'middle','font-size':'9','font-weight':'700',
     'font-family':'JetBrains Mono, monospace',fill:opC,opacity:'0.8'
   });
-  ol.textContent=opLabel; f.appendChild(ol);
+  ol.textContent='OPERATE'; f.appendChild(ol);
   const rl=mk('text',{
     x:ppx(mod360(mta+180),R*0.40).toFixed(2),y:(ppy(mod360(mta+180),R*0.40)+3.5).toFixed(2),
     'text-anchor':'middle','font-size':'9','font-weight':'700',
     'font-family':'JetBrains Mono, monospace',fill:reC,opacity:'0.7'
   });
-  rl.textContent=reLabel; f.appendChild(rl);
+  rl.textContent='RESTRAIN'; f.appendChild(rl);
 
   // Blind zone labels — midpoint of each blind wedge, inside operating region
-  const blindMidPlus  = mod360(plus90  - blind/2);   // midpoint between (plus90-blind) and plus90
-  const blindMidMinus = mod360(minus90 + blind/2);   // midpoint between minus90 and (minus90+blind)
-  [blindMidPlus, blindMidMinus].forEach(b=>{
-    const btx=mk('text',{
-      x:ppx(b,R*0.73).toFixed(2),y:(ppy(b,R*0.73)+3.5).toFixed(2),
-      'text-anchor':'middle','font-size':'8.5','font-weight':'600',
-      'font-family':'JetBrains Mono, monospace',
-      fill:css('--blind'),opacity:'0.85'
+  if(blind>0){
+    const blindMidPlus  = mod360(plus90  - blind/2);
+    const blindMidMinus = mod360(minus90 + blind/2);
+    [blindMidPlus, blindMidMinus].forEach(b=>{
+      const btx=mk('text',{
+        x:ppx(b,R*0.73).toFixed(2),y:(ppy(b,R*0.73)+3.5).toFixed(2),
+        'text-anchor':'middle','font-size':'8.5','font-weight':'600',
+        'font-family':'JetBrains Mono, monospace',
+        fill:css('--blind'),opacity:'0.85'
+      });
+      btx.textContent='blind'; f.appendChild(btx);
     });
-    btx.textContent='blind'; f.appendChild(btx);
-  });
+  }
 
   // Center dot
   f.appendChild(mk('circle',{cx,cy,r:'3',fill:css('--text2')}));
@@ -751,6 +862,19 @@ function draw(){
   dirEl.className='ic-value '+(state.dir==='fwd'?'green':'red');
   document.getElementById('ic-opzone').textContent=mod360(mta-90)+'° → '+mod360(mta+90)+'°';
   document.getElementById('ic-rezone').textContent=mod360(mta+90)+'° → '+mod360(mta-90)+'°';
+
+  const legBlind=document.getElementById('leg-blind-text');
+  if(legBlind){
+    legBlind.textContent=blind>0
+      ? `Blind zone (±${blind}° at ±90° boundaries)`
+      : 'Blind zone off (0° — increase to add boundary bands)';
+  }
+  const cap=document.getElementById('canvas-caption');
+  if(cap){
+    cap.textContent=blind>0
+      ? 'Green: operating (trip) semicircle ±90° about MTA · Red: restraint · Orange: blind bands at boundaries'
+      : 'Green: operating (trip) semicircle ±90° about MTA · Red: restraint · No blind bands (set blind zone > 0)';
+  }
 }
 
 function setType(t,btn){
@@ -772,7 +896,9 @@ function setDir(d,btn){
   document.querySelectorAll('#dir-grp .seg').forEach(b=>{b.classList.remove('on','on-fwd','on-rev');});
   btn.classList.add('on',d==='fwd'?'on-fwd':'on-rev');
   const hint=document.getElementById('dir-hint');
-  hint.textContent=d==='fwd'?'Fault in front of relay':'Fault behind relay';
+  hint.textContent=d==='fwd'
+    ? 'Operate when current angle lies in the green semicircle about MTA (forward zone).'
+    : 'Reverse: MTA shifted +180° — green operate band rotates with MTA.';
   hint.className='dir-hint '+(d==='fwd'?'fwd':'rev');
   draw();
 }
